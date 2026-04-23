@@ -1,0 +1,52 @@
+DROP DATABASE IF EXISTS psacms;
+
+CREATE DATABASE psacms;
+
+USE psacms;
+
+-- 1. Users and RBAC Table
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE COMMENT 'Email or National ID',
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL COMMENT 'Roles: CITIZEN, OFFICER, MANAGER',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) COMMENT='Base table for users and roles';
+
+-- 2. Applications Table
+CREATE TABLE applications (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    applicant_id BIGINT NOT NULL COMMENT 'FK to users.id',
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    current_status VARCHAR(50) NOT NULL DEFAULT 'DRAFT' COMMENT 'DRAFT, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (applicant_id) REFERENCES users(id) ON DELETE RESTRICT
+) COMMENT='Main application record';
+
+-- 3. Status Workflow History Table
+CREATE TABLE application_status_history (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    application_id BIGINT NOT NULL COMMENT 'FK to applications.id',
+    from_status VARCHAR(50),
+    to_status VARCHAR(50) NOT NULL,
+    actor_id BIGINT NOT NULL COMMENT 'FK to users.id (Who made the change)',
+    comments TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE RESTRICT
+) COMMENT='Audit trail for state machine transitions';
+
+-- 4. General Audit Logs Table (Optional if using Hibernate Envers later)
+CREATE TABLE audit_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    entity_name VARCHAR(100) NOT NULL COMMENT 'E.g., applications',
+    entity_id BIGINT NOT NULL,
+    action VARCHAR(50) NOT NULL COMMENT 'INSERT, UPDATE, DELETE',
+    old_data JSON COMMENT 'Snapshot before change',
+    new_data JSON COMMENT 'Snapshot after change',
+    actor_id BIGINT NOT NULL COMMENT 'FK to users.id',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE RESTRICT
+) COMMENT='System-wide data audit logs';

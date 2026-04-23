@@ -1,0 +1,9 @@
+### 1. Test: register new user (POST request)
+POST http://localhost:8080/psacms/api/users/register
+Content-Type: application/json
+
+{
+  "username": "citizen_001@example.com",
+  "password": "my_secure_password",
+  "role": "CITIZEN"
+}
