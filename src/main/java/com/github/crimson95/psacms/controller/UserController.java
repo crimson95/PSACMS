@@ -21,6 +21,6 @@ public class UserController {
         userService.registerUser(request);
 
         // 2. 把結果端給客人
-        return "Success, User " + request.getUsername() + "save in MySQL database.";
+        return "Registration successful! User [" + request.getUsername() + "] has been securely saved.";
     }
 }

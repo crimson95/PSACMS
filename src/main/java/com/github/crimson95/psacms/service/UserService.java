@@ -17,21 +17,19 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // 專門處理「註冊」這個商業邏輯的方法
+    // Handles the business logic for user registration
     public User registerUser(UserCreateRequest request) {
 
-        // 1. 這裡未來可以做各種邏輯檢查 (例如：if 帳號已存在，就拒絕註冊)
-
-        // 2. 將 DTO 轉換為 Entity
+        // 1. Convert DTO to Entity
         User newUser = new User();
         newUser.setUsername(request.getUsername());
         newUser.setRole(request.getRole());
 
-        // 3. 魔法發生在這裡！呼叫 encode() 方法，它會自動生成 Salt 並進行單向加密
+        // 2. Hash the plain-text password using BCrypt before persisting to the database
         String password = passwordEncoder.encode(request.getPassword());
         newUser.setPassword(password);
 
-        // 4. 將處理好的資料交給 Repository 存入資料庫
+        // 3. Persist to database
         return userRepository.save(newUser);
     }
 }

@@ -1,0 +1,9 @@
+### Submit a new application (POST)
+POST http://localhost:8080/psacms/api/applications/submit
+Content-Type: application/json
+
+{
+  "applicantId": 1,
+  "title": "2026 Canadian Youth Entrepreneurship Grant",
+  "description": "This is a comprehensive business plan submitted for the entrepreneurship funding program. It includes market analysis, financial projections, and the proposed impact on the local economy."
+}

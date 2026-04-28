@@ -12,20 +12,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // 註冊 BCrypt 密碼加密器，讓 Spring 把它放進容器裡備用
+    // Register BCrypt password encoder as a Spring Bean
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 設定資安規則
+    // Configure security rules and filter chain
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 暫時關閉 CSRF 防護（開發 API 時通常會先關閉，否則 Postman/HTTP Client 會被擋）
+                // Disable CSRF protection temporarily for API testing via Postman/HTTP Client
                 .csrf(csrf -> csrf.disable())
-                // 暫時允許所有的網址都可以直接訪問 (Permit All)，不需登入
-                // 注意：等我們之後做 RBAC (角色權限) 時，這裡就會改成嚴格的控管規則！
+                // Permit all requests for now (Will be restricted later using RBAC)
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         
         return http.build();
