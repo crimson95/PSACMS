@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ApplicationService {
 
+    // Repositories are used here to load and save database entities.
     @Autowired
     private ApplicationRepository applicationRepository;
     @Autowired
@@ -25,7 +26,8 @@ public class ApplicationService {
     @Transactional
     public Application submitApplication(ApplicationCreateRequest request) {
 
-        // 1. Retrieve the applicant (In production, this ID will be extracted from the Security Context)
+        // 1. Load the applicant from the database using the incoming applicantId.
+        // In a real authenticated system, this usually comes from the security context instead.
         User applicant = userRepository.findById(request.getApplicantId()).orElseThrow(() -> new RuntimeException("Application Not Found")) ;
 
         // 2. Create and persist the main Application record
@@ -42,7 +44,7 @@ public class ApplicationService {
         history.setApplication(savedApp);
         history.setFromStatus(null);  // No previous status for a newly created application
         history.setToStatus("SUBMITTED");
-        // 注意：如果你的變數名稱不同，請換成你修改後的 Setter (例如 setUpdatedBy / setActionDate 等)
+        // Record who performed the action so the history remains traceable.
         history.setActor(applicant);
         history.setComments("The application has been submitted");
 

@@ -1,10 +1,11 @@
 package com.github.crimson95.psacms.dto;
 
-// 這個類別專門用來接收前端傳來的註冊 JSON 資料
+// DTO used to receive registration data from the client.
 public class UserCreateRequest {
 
     private String username;
-    private String password;  // 接收明碼密碼
+    // Receives the plain-text password before it is hashed in the service layer.
+    private String password;
     private String role;
 
     public String getUsername() {

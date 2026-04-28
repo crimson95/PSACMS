@@ -4,24 +4,25 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-@Entity  // 告訴 Spring JPA：這個類別對應到資料庫的一張表
-@Table(name = "users")  // 指定資料庫的表名為 users
+@Entity  // Tells JPA that this class maps to a database table.
+@Table(name = "users")  // Uses the table name "users" in the database.
 public class User {
 
-    @Id  // 這代表 Primary Key
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // 這代表 AUTO_INCREMENT
+    @Id  // Primary key of the table.
+    @GeneratedValue(strategy = GenerationType.IDENTITY)  // Lets the database generate the ID automatically.
     private Long id;
 
-    @Column(nullable = false, unique = true)  // NOT NULL, UNIQUE
+    @Column(nullable = false, unique = true)  // Must exist and cannot be duplicated.
     private String username;
 
+    // Stores the hashed password, not the original plain-text password.
     @Column(name = "password", nullable = false)
     private String password;
 
     @Column(nullable = false, length = 50)
     private String role;
 
-    // 建立時間，當資料新增時自動寫入當下時間
+    // Timestamp recorded when the user is created.
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

@@ -7,13 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-@Service  // 告訴 Spring 這是一位負責商業邏輯的「主廚」
+@Service  // Marks this class as the service layer for business logic.
 public class UserService {
 
+    // Repository used to persist and query users.
     @Autowired
     private UserRepository userRepository;
 
-    // 把剛剛在 SecurityConfig 建立的加密器「注入」進來
+    // Inject the password encoder defined in SecurityConfig.
     @Autowired
     private PasswordEncoder passwordEncoder;
 

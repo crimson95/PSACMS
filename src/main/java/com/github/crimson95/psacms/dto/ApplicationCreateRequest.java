@@ -2,7 +2,8 @@ package com.github.crimson95.psacms.dto;
 
 public class ApplicationCreateRequest {
 
-    private Long applicantId;  // 告訴後端是哪位市民(User)送出的申請
+    // The ID of the user who is submitting this application.
+    private Long applicantId;
     private String title;
     private String description;
 

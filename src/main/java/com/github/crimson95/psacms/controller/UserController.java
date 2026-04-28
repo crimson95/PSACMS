@@ -6,21 +6,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users")  // 這支 Controller 底下的網址都會以 /api/users 開頭
+@RequestMapping("/api/users")  // Every endpoint in this controller starts with /api/users.
 public class UserController {
 
-    // 這就是傳說中的「依賴注入 (DI)」
+    // Dependency injection: Spring creates UserService and provides it here.
     @Autowired
     private UserService userService;
 
+    // This endpoint accepts a JSON request body and creates a new user.
     @PostMapping("/register")
     public String registerUser(@RequestBody UserCreateRequest request){
 
-        // 服務生只做兩件事：
-        // 1. 把客人的單子 (request) 交給主廚 (userService) 去處理
+        // The controller should stay thin:
+        // 1. Receive the HTTP request and pass the data to the service layer.
         userService.registerUser(request);
 
-        // 2. 把結果端給客人
+        // 2. Return a response message to the client.
         return "Registration successful! User [" + request.getUsername() + "] has been securely saved.";
     }
 }

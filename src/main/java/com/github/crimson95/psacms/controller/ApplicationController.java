@@ -10,12 +10,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/applications")
+@RequestMapping("/api/applications")  // Every endpoint in this controller starts with /api/applications.
 public class ApplicationController {
 
+    // Inject the service layer that contains the application submission logic.
     @Autowired
     private ApplicationService applicationService;
 
+    // Accepts a JSON payload and submits a new application.
     @PostMapping("/submit")
     public String submitApplication(@RequestBody ApplicationCreateRequest request) {
         applicationService.submitApplication(request);

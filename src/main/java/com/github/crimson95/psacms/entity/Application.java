@@ -12,23 +12,27 @@ public class Application {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 關聯到我們之前寫好的 User 表！代表「是哪個申請人送出的」
+    // Many applications can belong to one user.
+    // This field stores which user submitted the application.
     @ManyToOne
     @JoinColumn(name = "applicant_id", nullable = false)
     private User applicant;
 
-    // 申請案的標題或類型 (例如: "2026 青年創業補助")
+    // Short title or category of the application
+    // for example: "2026 Youth Startup Grant".
     @Column(nullable = false)
     private String title;
 
-    // 申請案的詳細內容
+    // Detailed description written by the applicant.
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // 目前的最新狀態 (方便快速查詢，例如: DRAFT, SUBMITTED, APPROVED)
+    // Stores the latest status directly on the application
+    // so the current state can be queried quickly.
     @Column(nullable = false, length = 50)
     private String currentStatus = "DRAFT";
 
+    // Timestamp recorded when the row is first created.
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

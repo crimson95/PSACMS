@@ -12,27 +12,32 @@ public class ApplicationStatusHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 告訴資料庫：這筆歷史紀錄，是屬於哪一個申請案的？
+    // Many history records can belong to one application.
+    // Each row tracks one status change for that application.
     @ManyToOne
     @JoinColumn(name = "application_id", nullable = false)
     private Application application;
 
-    // 轉換前的狀態 (例如: DRAFT)
+    // Status before the change, for example: DRAFT.
     @Column(name = "from_status", length = 50)
     private String fromStatus;
 
+    // Status after the change, for example: SUBMITTED.
     @Column(name = "to_status", length = 50)
     private String toStatus;
 
-    // 是誰按下按鈕改變這個狀態的？(關聯到 User 表，可能是申請人自己，也可能是審核員)
+    // The user who performed this action.
+    // This could be the applicant or a reviewer.
     @ManyToOne
     @JoinColumn(name = "actor_id", nullable = false)
     private User actor;
 
-    // 審核員可以留下意見 (例如: "文件不齊全，請補件")
+    // Optional note about the status change,
+    // for example: "Missing documents, please resubmit."
     @Column(columnDefinition = "TEXT")
     private String comments;
 
+    // Timestamp recorded when this history row is created.
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt =  LocalDateTime.now();
 
