@@ -2,6 +2,7 @@ package com.github.crimson95.psacms.controller;
 
 import com.github.crimson95.psacms.dto.ApplicationCreateRequest;
 import com.github.crimson95.psacms.dto.ApplicationResponse;
+import com.github.crimson95.psacms.dto.ApplicationStatusUpdateRequest;
 import com.github.crimson95.psacms.entity.Application;
 import com.github.crimson95.psacms.service.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,5 +31,13 @@ public class ApplicationController {
         // @PathVariable reads the {status} value from the URL
         // and passes it into this method as the "status" argument.
         return applicationService.getApplicationsByStatus(status);
+    }
+
+    // PUT /api/applications/1/status
+    // Updates the status of a specific application and logs the transition
+    @PutMapping("/{id}/status")
+    public String updateStatus(@PathVariable Long id, @RequestBody ApplicationStatusUpdateRequest request) {
+        applicationService.updateApplicationStatus(id, request);
+        return "Status successfully updated to [" + request.getNewStatus() + "]. Audit log recorded.";
     }
 }

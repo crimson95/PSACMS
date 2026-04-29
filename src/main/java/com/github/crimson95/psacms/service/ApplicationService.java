@@ -2,6 +2,7 @@ package com.github.crimson95.psacms.service;
 
 import com.github.crimson95.psacms.dto.ApplicationCreateRequest;
 import com.github.crimson95.psacms.dto.ApplicationResponse;
+import com.github.crimson95.psacms.dto.ApplicationStatusUpdateRequest;
 import com.github.crimson95.psacms.entity.Application;
 import com.github.crimson95.psacms.entity.ApplicationStatusHistory;
 import com.github.crimson95.psacms.entity.User;
@@ -75,5 +76,36 @@ public class ApplicationService {
             response.setCreatedAt(app.getCreatedAt());
             return response;
         }).toList();
+    }
+
+    // Processes state transitions and generates an audit trail entry atomically
+    @Transactional
+    public Application updateApplicationStatus(Long applicationId, ApplicationStatusUpdateRequest request) {
+
+        // 1. Retrieve the Application and the Officer (Actor)
+        Application app = applicationRepository.findById(applicationId).orElseThrow(() -> new RuntimeException("Application Not Found"));
+        User officer = userRepository.findById(request.getOfficerId()).orElseThrow(() -> new RuntimeException("Officer Not Found"));
+
+        // 2. State Machine Validation (Prevent redundant updates)
+        String oldStatus = app.getCurrentStatus();
+        if(oldStatus.equals(request.getNewStatus())){
+            throw new RuntimeException("Application is already in the requested status: " + oldStatus);
+        }
+
+        // 3. Update the main Application state
+        app.setCurrentStatus(request.getNewStatus());
+        Application updatedApp = applicationRepository.save(app);
+
+        // 4. Record the Audit Trail (Status History)
+        ApplicationStatusHistory history = new ApplicationStatusHistory();
+        history.setApplication(updatedApp);
+        history.setFromStatus(oldStatus);  // Snapshot of previous state
+        history.setToStatus(request.getNewStatus());  // The new state
+        history.setActor(officer);  // The person who made the change
+        history.setComments(request.getComments());
+
+        historyRepository.save(history);
+
+        return updatedApp;
     }
 }

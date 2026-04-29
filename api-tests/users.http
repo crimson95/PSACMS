@@ -7,3 +7,13 @@ Content-Type: application/json
   "password": "my_secure_password",
   "role": "CITIZEN"
 }
+
+### Register a new officer (POST)
+POST http://localhost:8080/psacms/api/users/register
+Content-Type: application/json
+
+{
+  "username": "officer_001@example.com",
+  "password": "my_secure_password",
+  "role": "OFFICER"
+}

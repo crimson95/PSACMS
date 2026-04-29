@@ -11,3 +11,13 @@ Content-Type: application/json
 ### Fetch application pending review (Officer Perspective)
 GET http://localhost:8080/psacms/api/applications/status/SUBMITTED
 Accept: application/json
+
+### Update application status to UNDER_REVIEW (Officer Perspective)
+PUT http://localhost:8080/psacms/api/applications/1/status
+Content-Type: application/json
+
+{
+  "officerId": 2,
+  "newStatus": "UNDER_REVIEW",
+  "comments": "Documents verified. Proceeding to background check phase."
+}
