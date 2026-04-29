@@ -1,6 +1,7 @@
 package com.github.crimson95.psacms.service;
 
 import com.github.crimson95.psacms.dto.ApplicationCreateRequest;
+import com.github.crimson95.psacms.dto.ApplicationResponse;
 import com.github.crimson95.psacms.entity.Application;
 import com.github.crimson95.psacms.entity.ApplicationStatusHistory;
 import com.github.crimson95.psacms.entity.User;
@@ -10,6 +11,8 @@ import com.github.crimson95.psacms.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ApplicationService {
@@ -52,5 +55,25 @@ public class ApplicationService {
 
         // 4. Return the successfully saved entity
         return savedApp;
+    }
+
+    // Retrieves a list of applications filtered by their current status
+    public List<ApplicationResponse> getApplicationsByStatus(String status) {
+
+        // 1. Load all application entities whose currentStatus matches the input.
+        List<Application> applications = applicationRepository.findByCurrentStatus(status);
+
+        // 2. Convert each entity into a response DTO.
+        // Returning DTOs is safer than returning JPA entities directly,
+        // because we control exactly which fields are exposed to the client.
+        return applications.stream().map(app -> {
+            ApplicationResponse response = new ApplicationResponse();
+            response.setId(app.getId());  // Copy the application's primary key.
+            response.setApplicationName(app.getApplicant().getUsername());  // Expose only the username, not the full user object.
+            response.setTitle(app.getTitle());
+            response.setCurrentStatus(app.getCurrentStatus());
+            response.setCreatedAt(app.getCreatedAt());
+            return response;
+        }).toList();
     }
 }

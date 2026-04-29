@@ -7,3 +7,7 @@ Content-Type: application/json
   "title": "2026 Canadian Youth Entrepreneurship Grant",
   "description": "This is a comprehensive business plan submitted for the entrepreneurship funding program. It includes market analysis, financial projections, and the proposed impact on the local economy."
 }
+
+### Fetch application pending review (Officer Perspective)
+GET http://localhost:8080/psacms/api/applications/status/SUBMITTED
+Accept: application/json
