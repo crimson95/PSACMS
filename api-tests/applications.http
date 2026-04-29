@@ -21,3 +21,25 @@ Content-Type: application/json
   "newStatus": "UNDER_REVIEW",
   "comments": "Documents verified. Proceeding to background check phase."
 }
+
+### Submit application (Must log in as CITIZEN)
+POST http://localhost:8080/psacms/api/applications/submit
+Content-Type: application/json
+Authorization: Basic citizen_001@example.com secure_password
+
+{
+  "applicantId": 1,
+  "title": "2026 Canadian Youth Entrepreneurship Grant",
+  "description": "This is a comprehensive business plan submitted for the entrepreneurship funding program. It includes market analysis, financial projections, and the proposed impact on the local economy."
+}
+
+### Update application status (Must log in as OFFICER)
+PUT http://localhost:8080/psacms/api/applications/1/status
+Content-Type: application/json
+Authorization: Basic officer_001@example.com secure_password
+
+{
+  "officerId": 2,
+  "newStatus": "UNDER_REVIEW",
+  "comments": "Documents verified."
+}

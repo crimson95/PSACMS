@@ -24,8 +24,22 @@ public class SecurityConfig {
         http
                 // Disable CSRF protection temporarily for API testing via Postman/HTTP Client
                 .csrf(csrf -> csrf.disable())
-                // Permit all requests for now (Will be restricted later using RBAC)
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                // Define which endpoints are public and which require specific authorities.
+                .authorizeHttpRequests(auth -> auth
+                    // 1. Registration is public so new users can create an account.
+                    .requestMatchers("/api/users/register").permitAll()
+
+                    // 2. Only users with the CITIZEN authority can submit applications.
+                    .requestMatchers("/api/applications/submit").hasAuthority("CITIZEN")
+
+                    // 3. Only users with the OFFICER authority can review application lists and status changes.
+                    .requestMatchers("/api/applications/status/**").hasAuthority("OFFICER")
+
+                    // 4. Any other request must come from an authenticated user.
+                    .anyRequest().authenticated()
+                )
+                // Enable HTTP Basic authentication so API tools can send username/password directly.
+                .httpBasic(org.springframework.security.config.Customizer.withDefaults());
         
         return http.build();
     }
