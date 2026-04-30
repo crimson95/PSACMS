@@ -1,0 +1,13 @@
+### Login and save Token automatically
+POST http://localhost:8080/psacms/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "officer_001@example.com",
+  "password": "secure_password"
+}
+
+> {%
+    // Save the raw token returned by the server into a global variable.
+    client.global.set("auth_token", response.body);
+  %}

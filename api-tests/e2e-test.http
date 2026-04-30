@@ -1,0 +1,72 @@
+### 1. Register Citizen
+POST http://localhost:8080/psacms/api/users/register
+Content-Type: application/json
+
+{
+  "username": "citizen_001@example.com",
+  "password": "secure_password",
+  "role": "CITIZEN"
+}
+
+### 2. Register Officer
+POST http://localhost:8080/psacms/api/users/register
+Content-Type: application/json
+
+{
+  "username": "officer_001@example.com",
+  "password": "secure_password",
+  "role": "OFFICER"
+}
+
+### 3. Citizen login and save JWT
+POST http://localhost:8080/psacms/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "citizen_001@example.com",
+  "password": "secure_password"
+}
+
+> {%
+    // Save the returned token into the citizen_token variable.
+    client.global.set("citizen_token", response.body);
+%}
+
+### 4. Citizen submits an application with a JWT
+POST http://localhost:8080/psacms/api/applications/submit
+Content-Type: application/json
+Authorization: Bearer {{citizen_token}}
+
+{
+  "applicantId": 1,
+  "title": "2026 Canadian Youth Entrepreneurship Grant",
+  "description": "This is a comprehensive business plan submitted for the entrepreneurship funding program. It includes market analysis, financial projections, and the proposed impact on the local economy."
+}
+
+### 5. Officer login and save JWT
+POST http://localhost:8080/psacms/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "officer_001@example.com",
+  "password": "secure_password"
+}
+
+> {%
+    client.global.set("officer_token", response.body);
+ %}
+
+### 6. Officer fetches the pending review list
+GET http://localhost:8080/psacms/api/applications/status/SUBMITTED
+Accept: application/json
+Authorization: Bearer {{officer_token}}
+
+### 7. Officer updates the application status
+PUT http://localhost:8080/psacms/api/applications/1/status
+Content-Type: application/json
+Authorization: Bearer {{officer_token}}
+
+{
+  "newStatus": "UNDER_REVIEW",
+  "comments": "Documents verified. Proceeding to background check phase."
+}

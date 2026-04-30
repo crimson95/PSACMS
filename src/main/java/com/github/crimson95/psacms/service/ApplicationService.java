@@ -11,6 +11,7 @@ import com.github.crimson95.psacms.repository.ApplicationStatusHistoryRepository
 import com.github.crimson95.psacms.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -82,17 +83,20 @@ public class ApplicationService {
     @Transactional
     public Application updateApplicationStatus(Long applicationId, ApplicationStatusUpdateRequest request) {
 
-        // 1. Retrieve the Application and the Officer (Actor)
+        // 1. Retrieve the Application
         Application app = applicationRepository.findById(applicationId).orElseThrow(() -> new RuntimeException("Application Not Found"));
-        User officer = userRepository.findById(request.getOfficerId()).orElseThrow(() -> new RuntimeException("Officer Not Found"));
 
-        // 2. State Machine Validation (Prevent redundant updates)
+        // 2. Retrieve the Officer (Actor)
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User officer = userRepository.findByUsername(currentUsername).orElseThrow(() -> new RuntimeException("Logged in user not found in DB"));
+
+        // 3. State Machine Validation (Prevent redundant updates)
         String oldStatus = app.getCurrentStatus();
         if(oldStatus.equals(request.getNewStatus())){
             throw new RuntimeException("Application is already in the requested status: " + oldStatus);
         }
 
-        // 3. Update the main Application state
+        // 4. Update the main Application state
         app.setCurrentStatus(request.getNewStatus());
         Application updatedApp = applicationRepository.save(app);
 
