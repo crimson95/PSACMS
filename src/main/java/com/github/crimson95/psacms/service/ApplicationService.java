@@ -100,7 +100,7 @@ public class ApplicationService {
         app.setCurrentStatus(request.getNewStatus());
         Application updatedApp = applicationRepository.save(app);
 
-        // 4. Record the Audit Trail (Status History)
+        // 5. Record the Audit Trail (Status History)
         ApplicationStatusHistory history = new ApplicationStatusHistory();
         history.setApplication(updatedApp);
         history.setFromStatus(oldStatus);  // Snapshot of previous state

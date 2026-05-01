@@ -70,3 +70,13 @@ Authorization: Bearer {{officer_token}}
   "newStatus": "UNDER_REVIEW",
   "comments": "Documents verified. Proceeding to background check phase."
 }
+
+### 8. Expected error: officer tries to update a non-existent application
+PUT http://localhost:8080/psacms/api/applications/999/status
+Content-Type: application/json
+Authorization: Bearer {{officer_token}}
+
+{
+  "newStatus": "UNDER_REVIEW",
+  "comments": "Testing global exception handler."
+}
