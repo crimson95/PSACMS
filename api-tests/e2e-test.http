@@ -43,6 +43,28 @@ Authorization: Bearer {{citizen_token}}
   "description": "This is a comprehensive business plan submitted for the entrepreneurship funding program. It includes market analysis, financial projections, and the proposed impact on the local economy."
 }
 
+### Citizen submits an application with a JWT
+POST http://localhost:8080/psacms/api/applications/submit
+Content-Type: application/json
+Authorization: Bearer {{citizen_token}}
+
+{
+  "applicantId": 1,
+  "title": "Test title 1",
+  "description": "Test description 1"
+}
+
+### Citizen submits an application with a JWT
+POST http://localhost:8080/psacms/api/applications/submit
+Content-Type: application/json
+Authorization: Bearer {{citizen_token}}
+
+{
+  "applicantId": 1,
+  "title": "Test title 2",
+  "description": "Test description 2"
+}
+
 ### 5. Officer login and save JWT
 POST http://localhost:8080/psacms/api/auth/login
 Content-Type: application/json

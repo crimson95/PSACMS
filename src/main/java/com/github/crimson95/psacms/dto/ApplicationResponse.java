@@ -7,9 +7,9 @@ import java.time.LocalDateTime;
 public class ApplicationResponse {
     private Long id;
     // Stores the applicant's username for display in the response.
-    private String applicationName;
+    private String applicantName;
     private String title;
-    private String CurrentStatus;
+    private String currentStatus;
     private LocalDateTime createdAt;
 
     public Long getId() {
@@ -20,12 +20,12 @@ public class ApplicationResponse {
         this.id = id;
     }
 
-    public String getApplicationName() {
-        return applicationName;
+    public String getApplicantName() {
+        return applicantName;
     }
 
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
+    public void setApplicantName(String applicantName) {
+        this.applicantName = applicantName;
     }
 
     public String getTitle() {
@@ -37,11 +37,11 @@ public class ApplicationResponse {
     }
 
     public String getCurrentStatus() {
-        return CurrentStatus;
+        return currentStatus;
     }
 
     public void setCurrentStatus(String currentStatus) {
-        CurrentStatus = currentStatus;
+        this.currentStatus = currentStatus;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PSACMS - Officer Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root { --gov-red: #850000; }
+    body { background-color: #f8f9fa; }
+    .sidebar { min-height: 100vh; background: #2b0000; color: white; width: 240px; position: fixed; }
+    .main-content { margin-left: 240px; padding: 20px; }
+    .nav-link { color: rgba(255,255,255,0.7); }
+    .nav-link.active { color: white; background: var(--gov-red); border-radius: 8px; }
+    .nav-link:hover { color: white; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .status-badge { font-size: 0.8rem; padding: 5px 12px; border-radius: 20px; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="sidebar d-flex flex-column p-3">
+  <div class="d-flex align-items-center mb-4 px-2">
+    <div class="bg-primary rounded-circle p-2 me-2" style="width: 35px; height: 35px; background-color: var(--gov-red) !important;">
+      <i class="bi bi-shield-check text-white"></i>
+    </div>
+    <span class="fs-5 fw-bold">PSACMS</span>
+  </div>
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+    <a class="nav-link active" href="#"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+    </li>
+    <li>
+      <a class="nav-link" href="#"><i class="bi bi-file-earmark-text me-2"></i> All Cases</a>
+    </li>
+  </ul>
+  <hr>
+  <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+</div>
+
+<div class="main-content">
+  <header class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Pending Reviews</h2>
+    <div class="dropdown">
+      <span class="text-muted me-3">Welcome Officer</span>
+      <i class="bi bi-person-circle fs-4"></i>
+    </div>
+  </header>
+
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card p-3">
+        <small class="text-muted">Total Pending</small>
+        <div class="h3 mb-0" id="countPending">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-4">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Application ID</th>
+          <th>Applicant</th>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="applicationTableBody">
+        <tr>
+          <td colspan="6" class="text-center py-4 text-muted">Loading data...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const API_BASE = "http://localhost:8080/psacms/api/applications";
+  const token = localStorage.getItem("psacms_token");
+
+  // Redirect unauthenticated users back to the login page.
+  if(!token){
+    window.location.href = 'index.html';
+  }
+
+  // Load applications that are waiting for officer review.
+  async function loadApplications(){
+    try{
+      const response = await fetch(`${API_BASE}/status/SUBMITTED`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if(response.ok){
+        const data = await response.json();
+        renderTable(data);
+      }else if(response.status === 401 || response.status === 403){
+        alert("Session expired. Please login again.");
+        logout();
+      }
+    }catch(error){
+      console.error("Fetch error: ", error);
+      document.getElementById('applicationTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Server connection failed.</td></tr>';
+    }
+  }
+
+  function renderTable(apps){
+    const tbody = document.getElementById('applicationTableBody');
+    const counter = document.getElementById('countPending');
+
+    counter.innerText = apps.length;
+
+    if(apps.length === 0){
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">No pending applications found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = apps.map(app => `
+      <tr>
+        <td># ${app.id}</td>
+        <td>${app.applicantName || 'N/A'}</td>
+        <td class="fw-bold">${app.title}</td>
+        <td><span class="status-badge bg-warning-subtle text-warning-emphasis border border-warning">${app.currentStatus}</span></td>
+        <td class="text-muted">${new Date (app.createdAt || app.submittedAt).toLocaleDateString()}</td>
+        <td>
+            <button class="btn btn-sm btn-primary" onclick="reviewApplication(${app.id})">Review</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function logout(){
+    localStorage.removeItem("psacms_token");
+    window.location.href = 'index.html';
+  }
+
+  // Run the data load when the page finishes loading.
+  window.onload = loadApplications;
+
+  // Review the selected application and move it into the next workflow state.
+  async function reviewApplication(appId){
+    // Ask the officer for a short audit note before changing the status.
+    const comments = prompt("Enter review comments (e.g., 'Document verified'):", "Proceeding to background check.");
+
+    // Stop if the officer cancels the prompt.
+    if(comments === null) return;
+
+    // Call the backend status update endpoint for this application.
+    try{
+      const response = await fetch(`${API_BASE}/${appId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          newStatus: "UNDER_REVIEW",  // Move the application into officer review.
+          comments: comments  // Send the officer's audit note.
+        })
+      });
+
+      if(response.ok){
+        alert(`Success! Application #${appId} is now UNDER_REVIEW.`);
+        // Reload the pending list. Since this page only fetches SUBMITTED applications,
+        // the reviewed application should disappear after it moves to UNDER_REVIEW.
+        loadApplications();
+      }else{
+        // Show the structured JSON error returned by the backend exception handler.
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message}`);
+      }
+    }catch(error){
+      console.error("Update failed: ", error);
+      alert("Failed to reach the server");
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSACMS - Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f4f7f6; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { max-width: 400px; width: 100%; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .btn-primary { background-color: #850000; border: none; }
+        .btn-primary:hover { background-color: #850000; }
+        .brand-logo { width: 60px; height: 60px; background-color: #850000; color: white; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 0 auto 20px; }
+    </style>
+</head>
+<body>
+<div class="card login-card p-4">
+    <div class="brand-logo">Gov</div>
+    <h4 class="text-center mb-4">PSACMS Portal</h4>
+
+    <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
+
+    <form id="loginForm">
+        <div class="mb-3">
+            <label class="form-label">Email address</label>
+            <input type="email" class="form-control" id="emailInput" value="officer_001@example.com" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-control" id="passwordInput" value="secure_password" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-2 mt-2">Login</button>
+    </form>
+</div>
+
+<script>
+    // Listen for the login form submit event.
+    document.getElementById("loginForm").addEventListener('submit', function(e) {
+        e.preventDefault();  // Prevent the browser from refreshing the page.
+
+        const email = document.getElementById("emailInput").value;
+        const password = document.getElementById("passwordInput").value;
+        const errorAlert = document.getElementById("errorAlert");
+
+        errorAlert.classList.add("d-none");  // Hide any previous error message.
+
+        // Call the backend login API with Fetch.
+        fetch('http://localhost:8080/psacms/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: email, password: password })
+        })
+        .then(async response => {
+            if (response.ok) {
+                const token = await response.text();
+                // Store the JWT in localStorage so dashboard requests can send it later.
+                localStorage.setItem("psacms_token", token);
+                window.location.href = 'dashboard.html';
+            }else{
+                errorAlert.textContent = 'Invalid credentials. Please try again.';
+                errorAlert.classList.remove("d-none");
+            }
+        })
+            .catch(error => {
+                errorAlert.textContent = 'Server is unreachable. Is Spring Boot running?';
+                errorAlert.classList.remove("d-none");
+        });
+    });
+</script>
+</body>
+</html>

@@ -14,6 +14,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -40,6 +45,7 @@ public class SecurityConfig {
         http
             // Disable CSRF protection temporarily for API testing via Postman/HTTP Client
             .csrf(csrf -> csrf.disable())
+            .cors(org.springframework.security.config.Customizer.withDefaults())  // Enable CORS rules defined below.
 
             // Define which endpoints are public and which require specific authorities.
             .authorizeHttpRequests(auth -> auth
@@ -48,6 +54,8 @@ public class SecurityConfig {
 
                 // 1. Registration is public so new users can create an account.
                 .requestMatchers("/api/users/register").permitAll()
+
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // Allow browser CORS preflight requests.
 
                 // 2. Only users with the CITIZEN authority can submit applications.
                 .requestMatchers("/api/applications/submit").hasAuthority("CITIZEN")
@@ -66,5 +74,22 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // Allow all frontend origins during local development.
+        // In production, replace this with the real frontend origin.
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // HTTP methods that the browser is allowed to call.
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // Headers the browser may send, especially JWT Authorization and JSON Content-Type.
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);  // Allow credentialed cross-origin requests.
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);  // Apply this CORS policy to all API paths.
+        return source;
     }
 }

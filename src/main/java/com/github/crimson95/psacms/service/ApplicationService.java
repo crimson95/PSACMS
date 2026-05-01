@@ -71,7 +71,7 @@ public class ApplicationService {
         return applications.stream().map(app -> {
             ApplicationResponse response = new ApplicationResponse();
             response.setId(app.getId());  // Copy the application's primary key.
-            response.setApplicationName(app.getApplicant().getUsername());  // Expose only the username, not the full user object.
+            response.setApplicantName(app.getApplicant().getUsername());  // Expose only the username, not the full user object.
             response.setTitle(app.getTitle());
             response.setCurrentStatus(app.getCurrentStatus());
             response.setCreatedAt(app.getCreatedAt());
