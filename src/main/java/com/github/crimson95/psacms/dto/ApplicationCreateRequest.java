@@ -1,17 +1,10 @@
 package com.github.crimson95.psacms.dto;
 
+// DTO for the JSON body sent by citizen.html when creating an application.
+// The applicant ID is intentionally not included; the backend uses the authenticated JWT user instead.
 public class ApplicationCreateRequest {
-
-    // The ID of the user who is submitting this application.
-    private Long applicantId;
     private String title;
     private String description;
-
-    public Long getApplicantId() { return applicantId; }
-
-    public void setApplicantId(Long applicantId) {
-        this.applicantId = applicantId;
-    }
 
     public String getTitle() {
         return title;

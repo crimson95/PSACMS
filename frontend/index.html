@@ -6,11 +6,24 @@
     <title>PSACMS - Login</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
+        :root { --gov-red: #850000; }
         body { background-color: #f4f7f6; height: 100vh; display: flex; align-items: center; justify-content: center; }
         .login-card { max-width: 400px; width: 100%; border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .btn-primary { background-color: #850000; border: none; }
-        .btn-primary:hover { background-color: #850000; }
-        .brand-logo { width: 60px; height: 60px; background-color: #850000; color: white; border-radius: 50%; display: flex;
+        .btn-primary {
+            --bs-btn-bg: var(--gov-red);
+            --bs-btn-border-color: var(--gov-red);
+            --bs-btn-hover-bg: #660000;
+            --bs-btn-hover-border-color: #660000;
+            --bs-btn-active-bg: #4d0000;
+            --bs-btn-active-border-color: #4d0000;
+            --bs-btn-focus-shadow-rgb: 133, 0, 0;
+            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 10px rgba(133, 0, 0, 0.22);
+            transform: translateY(-1px);
+        }
+        .brand-logo { width: 60px; height: 60px; background-color: var(--gov-red); color: white; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; font-size: 24px; font-weight: bold; margin: 0 auto 20px; }
     </style>
 </head>
@@ -35,6 +48,13 @@
 </div>
 
 <script>
+    function parseJwt(token) {
+        const payloadBase64Url = token.split('.')[1];
+        const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const paddedPayload = payloadBase64.padEnd(Math.ceil(payloadBase64.length / 4) * 4, '=');
+        return JSON.parse(atob(paddedPayload));
+    }
+
     // Listen for the login form submit event.
     document.getElementById("loginForm").addEventListener('submit', function(e) {
         e.preventDefault();  // Prevent the browser from refreshing the page.
@@ -58,7 +78,20 @@
                 const token = await response.text();
                 // Store the JWT in localStorage so dashboard requests can send it later.
                 localStorage.setItem("psacms_token", token);
-                window.location.href = 'dashboard.html';
+
+                const decodePayload = parseJwt(token);
+
+                const userRole = decodePayload.role || decodePayload.authorities?.[0];
+
+                if(userRole === 'OFFICER'){
+                    window.location.href = "dashboard.html";  // Officers go to the review dashboard.
+                }else if(userRole === 'CITIZEN'){
+                    window.location.href = "citizen.html";  // Citizens go to the citizen portal.
+                }else{
+                    localStorage.removeItem("psacms_token");
+                    errorAlert.textContent = 'Login succeeded, but the user role in the token is missing or invalid.';
+                    errorAlert.classList.remove("d-none");
+                }
             }else{
                 errorAlert.textContent = 'Invalid credentials. Please try again.';
                 errorAlert.classList.remove("d-none");

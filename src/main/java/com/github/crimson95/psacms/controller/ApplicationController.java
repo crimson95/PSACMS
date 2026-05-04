@@ -19,10 +19,18 @@ public class ApplicationController {
     private ApplicationService applicationService;
 
     // Accepts a JSON payload and submits a new application.
+    // @RequestBody tells Spring to convert the incoming JSON into ApplicationCreateRequest.
     @PostMapping("/submit")
-    public String submitApplication(@RequestBody ApplicationCreateRequest request) {
-        applicationService.submitApplication(request);
-        return "Application submitted successfully! Audit trail has been generated.";
+    public ApplicationResponse submitApplication(@RequestBody ApplicationCreateRequest request) {
+        Application savedApplication = applicationService.submitApplication(request);
+        return applicationService.toResponse(savedApplication);
+    }
+
+    // GET /api/applications/mine
+    // Returns only the applications submitted by the currently authenticated citizen.
+    @GetMapping("/mine")
+    public List<ApplicationResponse> getMyApplications() {
+        return applicationService.getCurrentUserApplications();
     }
 
     // Example request: GET /api/applications/status/SUBMITTED
@@ -35,6 +43,7 @@ public class ApplicationController {
 
     // PUT /api/applications/1/status
     // Updates the status of a specific application and logs the transition
+    // @PathVariable binds the {id} segment from the URL to the method parameter.
     @PutMapping("/{id}/status")
     public String updateStatus(@PathVariable Long id, @RequestBody ApplicationStatusUpdateRequest request) {
         applicationService.updateApplicationStatus(id, request);

@@ -11,17 +11,43 @@
     body { background-color: #f8f9fa; }
     .sidebar { min-height: 100vh; background: #2b0000; color: white; width: 240px; position: fixed; }
     .main-content { margin-left: 240px; padding: 20px; }
-    .nav-link { color: rgba(255,255,255,0.7); }
-    .nav-link.active { color: white; background: var(--gov-red); border-radius: 8px; }
-    .nav-link:hover { color: white; }
+    .nav-link {
+      color: rgba(255,255,255,0.7);
+      transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+    .nav-pills .nav-link.active,
+    .nav-pills .show > .nav-link { color: white; background-color: var(--gov-red); border-radius: 8px; }
+    .nav-link:hover,
+    .nav-link:focus {
+      color: white;
+      background-color: rgba(133, 0, 0, 0.45);
+      transform: translateX(2px);
+    }
+    .nav-pills .nav-link.active:focus,
+    .nav-pills .nav-link.active:active { background-color: var(--gov-red); }
     .card { border: none; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .status-badge { font-size: 0.8rem; padding: 5px 12px; border-radius: 20px; font-weight: 600; }
+    .bg-primary { background-color: var(--gov-red) !important; }
+    .btn-primary {
+      --bs-btn-bg: var(--gov-red);
+      --bs-btn-border-color: var(--gov-red);
+      --bs-btn-hover-bg: #660000;
+      --bs-btn-hover-border-color: #660000;
+      --bs-btn-active-bg: #4d0000;
+      --bs-btn-active-border-color: #4d0000;
+      --bs-btn-focus-shadow-rgb: 133, 0, 0;
+      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 4px 10px rgba(133, 0, 0, 0.22);
+      transform: translateY(-1px);
+    }
   </style>
 </head>
 <body>
 <div class="sidebar d-flex flex-column p-3">
   <div class="d-flex align-items-center mb-4 px-2">
-    <div class="bg-primary rounded-circle p-2 me-2" style="width: 35px; height: 35px; background-color: var(--gov-red) !important;">
+    <div class="bg-primary rounded-circle p-2 me-2" style="width: 35px; height: 35px;">
       <i class="bi bi-shield-check text-white"></i>
     </div>
     <span class="fs-5 fw-bold">PSACMS</span>
@@ -31,7 +57,7 @@
     <a class="nav-link active" href="#"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
     </li>
     <li>
-      <a class="nav-link" href="#"><i class="bi bi-file-earmark-text me-2"></i> All Cases</a>
+      <a class="nav-link" href="#" onclick="alert('All Cases view is coming soon in V2!')"><i class="bi bi-file-earmark-text me-2"></i> All Cases</a>
     </li>
   </ul>
   <hr>

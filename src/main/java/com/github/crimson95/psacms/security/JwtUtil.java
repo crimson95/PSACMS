@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 @Component
@@ -24,8 +25,16 @@ public class JwtUtil {
 
     // Creates a signed JWT for a successfully authenticated user.
     public String generateToken(UserDetails userDetails) {
+        List<String> authorities = userDetails.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .toList();
+
+        // Claims are custom fields inside the JWT payload.
+        // The frontend reads "role" to decide whether to open dashboard.html or citizen.html.
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())  // Store the username as the token subject.
+                .claim("role", authorities.isEmpty() ? null : authorities.get(0))
+                .claim("authorities", authorities)
                 .setIssuedAt(new Date(System.currentTimeMillis()))  // Token creation time.
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))  // Token expiration time.
                 .signWith(SECRET_KEY)  // Sign the token so tampering can be detected.
@@ -48,6 +57,8 @@ public class JwtUtil {
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        // parseClaimsJws validates the signature before returning the payload.
+        // If the token was changed or signed with the wrong key, this call fails.
         final Claims claims = Jwts.parserBuilder().setSigningKey(SECRET_KEY).build().parseClaimsJws(token).getBody();
         return claimsResolver.apply(claims);
     }

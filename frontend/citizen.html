@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSACMS - Citizen Portal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root { --gov-red: #850000; }
+        body { background-color: #f8f9fa; }
+        .navbar { background-color: var(--gov-red); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .text-primary { color: var(--gov-red) !important; }
+        .btn-primary {
+            --bs-btn-bg: var(--gov-red);
+            --bs-btn-border-color: var(--gov-red);
+            --bs-btn-hover-bg: #660000;
+            --bs-btn-hover-border-color: #660000;
+            --bs-btn-active-bg: #4d0000;
+            --bs-btn-active-border-color: #4d0000;
+            --bs-btn-focus-shadow-rgb: 133, 0, 0;
+            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 10px rgba(133, 0, 0, 0.22);
+            transform: translateY(-1px);
+        }
+        .alert { background-color: #fdbaba; color: var(--gov-red); border: none; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="bi bi-bank2 me-2"></i> PSACMS Citizen Portal
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3" id="userGreeting">Welcome, Citizen</span>
+            <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-5 mb-4">
+            <div class="card p-4 h-100">
+                <h4 class="mb-3"><i class="bi bi-pencil-square text-primary me-2"></i>New Application</h4>
+                <p class="text-muted small">Submit a new request for public services. Your request will be reviewed by an officer.</p>
+
+                <form id="applicationForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Application Title</label>
+                        <input type="text" class="form-control" id="titleInput" placeholder="e.g., 2026 Housing Subsidy" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Description / Details</label>
+                        <textarea class="form-control" id="descriptionInput" rows="4" placeholder="Provide detailed information..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Submit Application</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-md-7 mb-4">
+            <div class="card p-4 h-100">
+                <h4 class="mb-3"><i class="bi bi-clock-history text-primary me-2"></i>My Submissions</h4>
+                <div class="alert alert-info small">
+                    <i class="bi bi-info-circle me-1"></i> Once submitted, you can track the status of your applications here.
+                </div>
+
+                <table class="table table-hover mt-2">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myApplicationsTable">
+                        <tr><td colspan="3" class="text-center text-muted py-4">No applications submitted yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = "http://localhost:8080/psacms/api/applications";
+    const token = localStorage.getItem('psacms_token');
+
+    // Security check: users without a token must return to the login page.
+    if(!token){
+        window.location.href = "index.html"
+    }
+
+    function getStatusBadgeClass(status) {
+        if(status === "SUBMITTED") return "bg-warning text-dark";
+        if(status === "UNDER_REVIEW") return "bg-info text-dark";
+        if(status === "APPROVED") return "bg-success";
+        if(status === "REJECTED") return "bg-danger";
+        return "bg-secondary";
+    }
+
+    function renderApplications(applications) {
+        const tbody = document.getElementById('myApplicationsTable');
+
+        if(!applications || applications.length === 0){
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No applications submitted yet.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = applications.map(app => `
+            <tr>
+                <td>#${app.id}</td>
+                <td class="fw-bold">${app.title}</td>
+                <td><span class="badge ${getStatusBadgeClass(app.currentStatus)}">${app.currentStatus}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    async function loadMyApplications() {
+        try{
+            const response = await fetch(`${API_BASE}/mine`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if(response.ok){
+                const applications = await response.json();
+                renderApplications(applications);
+            }else if(response.status === 401 || response.status === 403){
+                alert("Session expired. Please login again.");
+                logout();
+            }else{
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message}`);
+            }
+        }catch(error){
+            console.error("Fetch error: ", error);
+            document.getElementById('myApplicationsTable').innerHTML =
+                '<tr><td colspan="3" class="text-center text-danger py-4">Server connection failed.</td></tr>';
+        }
+    }
+
+    // Handle the new application form submission.
+    document.getElementById('applicationForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const title = document.getElementById('titleInput').value;
+        const description = document.getElementById('descriptionInput').value;
+        const submitBtn = e.target.querySelector('button');
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Submitting...";
+
+        try{
+            const response = await fetch(`${API_BASE}/submit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title: title, description: description })
+            });
+
+            if(response.ok){
+                const data = await response.json();
+                alert(`Success! Your application #${data.id} has been submitted.`);
+
+                // Clear the form after the backend confirms the application was saved.
+                document.getElementById('applicationForm').reset();
+                loadMyApplications();
+
+            }else{
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message}`);
+            }
+        }catch(error){
+            console.error("Error: ", error);
+            alert("Failed to connect to the server.")
+        }finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Submit Application";
+        }
+    });
+
+    function logout(){
+        localStorage.removeItem('psacms_token');
+        window.location.href = "index.html";
+    }
+
+    window.onload = loadMyApplications;
+</script>
+</body>
+</html>

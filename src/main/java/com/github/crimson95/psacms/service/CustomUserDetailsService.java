@@ -19,6 +19,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     // Spring Security calls this method automatically during authentication.
+    // It is the adapter between your users table and Spring Security's UserDetails model.
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 

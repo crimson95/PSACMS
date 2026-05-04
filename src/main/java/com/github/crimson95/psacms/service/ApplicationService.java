@@ -20,6 +20,7 @@ import java.util.List;
 public class ApplicationService {
 
     // Repositories are used here to load and save database entities.
+    // The service layer coordinates business rules across one or more repositories.
     @Autowired
     private ApplicationRepository applicationRepository;
     @Autowired
@@ -30,10 +31,11 @@ public class ApplicationService {
     // Ensures atomic execution: both database operations succeed, or both rollback entirely.
     @Transactional
     public Application submitApplication(ApplicationCreateRequest request) {
-
-        // 1. Load the applicant from the database using the incoming applicantId.
-        // In a real authenticated system, this usually comes from the security context instead.
-        User applicant = userRepository.findById(request.getApplicantId()).orElseThrow(() -> new RuntimeException("Application Not Found")) ;
+        // 1. Load the applicant from the authenticated user instead of trusting a client-supplied ID.
+        // The JWT filter already placed the username into Spring Security's context for this request.
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User applicant = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Logged in user not found in DB"));
 
         // 2. Create and persist the main Application record
         Application app = new Application();
@@ -59,6 +61,30 @@ public class ApplicationService {
         return savedApp;
     }
 
+    // Converts a JPA entity into a DTO.
+    // Controllers return DTOs so the API exposes only the fields the frontend needs.
+    public ApplicationResponse toResponse(Application app) {
+        ApplicationResponse response = new ApplicationResponse();
+        response.setId(app.getId());
+        response.setApplicantName(app.getApplicant().getUsername());
+        response.setTitle(app.getTitle());
+        response.setCurrentStatus(app.getCurrentStatus());
+        response.setCreatedAt(app.getCreatedAt());
+        return response;
+    }
+
+    // Used by the citizen portal to reload persisted submissions after page refresh.
+    public List<ApplicationResponse> getCurrentUserApplications() {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User applicant = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("Logged in user not found in DB"));
+
+        return applicationRepository.findByApplicantOrderByCreatedAtDesc(applicant)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     // Retrieves a list of applications filtered by their current status
     public List<ApplicationResponse> getApplicationsByStatus(String status) {
 
@@ -68,15 +94,7 @@ public class ApplicationService {
         // 2. Convert each entity into a response DTO.
         // Returning DTOs is safer than returning JPA entities directly,
         // because we control exactly which fields are exposed to the client.
-        return applications.stream().map(app -> {
-            ApplicationResponse response = new ApplicationResponse();
-            response.setId(app.getId());  // Copy the application's primary key.
-            response.setApplicantName(app.getApplicant().getUsername());  // Expose only the username, not the full user object.
-            response.setTitle(app.getTitle());
-            response.setCurrentStatus(app.getCurrentStatus());
-            response.setCreatedAt(app.getCreatedAt());
-            return response;
-        }).toList();
+        return applications.stream().map(this::toResponse).toList();
     }
 
     // Processes state transitions and generates an audit trail entry atomically
@@ -101,6 +119,7 @@ public class ApplicationService {
         Application updatedApp = applicationRepository.save(app);
 
         // 5. Record the Audit Trail (Status History)
+        // The history table keeps past changes even though Application.currentStatus stores only the latest status.
         ApplicationStatusHistory history = new ApplicationStatusHistory();
         history.setApplication(updatedApp);
         history.setFromStatus(oldStatus);  // Snapshot of previous state

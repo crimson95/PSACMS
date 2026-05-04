@@ -24,10 +24,13 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    // Spring injects this filter because JwtAuthenticationFilter is annotated with @Component.
+    // The filter runs on every request and tries to rebuild the logged-in user from the JWT.
     @Autowired
     private JwtAuthenticationFilter jwtAuthFilter;  // Custom filter that validates JWT bearer tokens.
 
     // Register BCrypt password encoder as a Spring Bean
+    // Other classes can inject PasswordEncoder without manually creating this object.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -39,7 +42,8 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    // Configure security rules and filter chain
+    // Configure Spring Security's request rules and filter chain.
+    // Think of this method as the main security routing table for the backend.
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -48,6 +52,7 @@ public class SecurityConfig {
             .cors(org.springframework.security.config.Customizer.withDefaults())  // Enable CORS rules defined below.
 
             // Define which endpoints are public and which require specific authorities.
+            // These rules are checked after JwtAuthenticationFilter has populated the SecurityContext.
             .authorizeHttpRequests(auth -> auth
                 // Login must be public because users need this endpoint to obtain a JWT.
                 .requestMatchers("/api/auth/login").permitAll()
@@ -57,8 +62,9 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // Allow browser CORS preflight requests.
 
-                // 2. Only users with the CITIZEN authority can submit applications.
+                // 2. Only users with the CITIZEN authority can submit and view their own applications.
                 .requestMatchers("/api/applications/submit").hasAuthority("CITIZEN")
+                .requestMatchers(HttpMethod.GET, "/api/applications/mine").hasAuthority("CITIZEN")
 
                 // 3. Only users with the OFFICER authority can review application lists and status changes.
                 .requestMatchers("/api/applications/status/**").hasAuthority("OFFICER")

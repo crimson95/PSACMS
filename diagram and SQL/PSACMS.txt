@@ -1,3 +1,9 @@
+DROP DATABASE IF EXISTS psacms;
+
+CREATE DATABASE psacms;
+
+USE psacms;
+
 -- 1. Users and RBAC Table
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

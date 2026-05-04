@@ -24,6 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
+    // OncePerRequestFilter guarantees this method runs once per HTTP request.
+    // Its job is authentication: read the JWT, validate it, then tell Spring Security who the user is.
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -50,6 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 4. Validate the token before trusting it for the current request.
             if (jwtUtil.isTokenValid(jwt, userDetails)) {
                 // Store the authenticated user in the SecurityContext for authorization checks.
+                // Later code can read SecurityContextHolder.getContext().getAuthentication().getName()
+                // to know which user is making the request.
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
