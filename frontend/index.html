@@ -76,7 +76,7 @@
         .then(async response => {
             if (response.ok) {
                 const token = await response.text();
-                // Store the JWT in localStorage so dashboard requests can send it later.
+                // Store the JWT in localStorage so officer portal requests can send it later.
                 localStorage.setItem("psacms_token", token);
 
                 const decodePayload = parseJwt(token);
@@ -84,7 +84,7 @@
                 const userRole = decodePayload.role || decodePayload.authorities?.[0];
 
                 if(userRole === 'OFFICER'){
-                    window.location.href = "dashboard.html";  // Officers go to the review dashboard.
+                    window.location.href = "officer.html";  // Officers go to the officer portal.
                 }else if(userRole === 'CITIZEN'){
                     window.location.href = "citizen.html";  // Citizens go to the citizen portal.
                 }else{

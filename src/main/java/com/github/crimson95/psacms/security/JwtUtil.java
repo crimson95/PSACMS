@@ -30,7 +30,7 @@ public class JwtUtil {
                 .toList();
 
         // Claims are custom fields inside the JWT payload.
-        // The frontend reads "role" to decide whether to open dashboard.html or citizen.html.
+        // The frontend reads "role" to decide whether to open officer.html or citizen.html.
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())  // Store the username as the token subject.
                 .claim("role", authorities.isEmpty() ? null : authorities.get(0))
