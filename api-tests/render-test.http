@@ -1,5 +1,5 @@
 ### 1. Register Citizen
-POST https://psacms-api.onrender.com/psacms/api/users/register
+POST https://psacms.onrender.com/psacms/api/users/register
 Content-Type: application/json
 
 {
@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ### 2. Register Officer
-POST https://psacms-api.onrender.com/psacms/api/users/register
+POST https://psacms.onrender.com/psacms/api/users/register
 Content-Type: application/json
 
 {
@@ -19,7 +19,7 @@ Content-Type: application/json
 }
 
 ### 3. Citizen login and save JWT
-POST https://psacms-api.onrender.com/psacms/api/auth/login
+POST https://psacms.onrender.com/psacms/api/auth/login
 Content-Type: application/json
 
 {
@@ -33,7 +33,7 @@ Content-Type: application/json
 %}
 
 ### 4. Citizen submits an application with a JWT
-POST https://psacms-api.onrender.com/psacms/api/applications/submit
+POST https://psacms.onrender.com/psacms/api/applications/submit
 Content-Type: application/json
 Authorization: Bearer {{citizen_token}}
 
@@ -44,7 +44,7 @@ Authorization: Bearer {{citizen_token}}
 }
 
 ### Citizen submits an application with a JWT
-POST https://psacms-api.onrender.com/psacms/api/applications/submit
+POST https://psacms.onrender.com/psacms/api/applications/submit
 Content-Type: application/json
 Authorization: Bearer {{citizen_token}}
 
@@ -55,7 +55,7 @@ Authorization: Bearer {{citizen_token}}
 }
 
 ### Citizen submits an application with a JWT
-POST https://psacms-api.onrender.com/psacms/api/applications/submit
+POST https://psacms.onrender.com/psacms/api/applications/submit
 Content-Type: application/json
 Authorization: Bearer {{citizen_token}}
 
@@ -66,7 +66,7 @@ Authorization: Bearer {{citizen_token}}
 }
 
 ### 5. Officer login and save JWT
-POST https://psacms-api.onrender.com/psacms/api/auth/login
+POST https://psacms.onrender.com/psacms/api/auth/login
 Content-Type: application/json
 
 {
@@ -79,12 +79,12 @@ Content-Type: application/json
 %}
 
 ### 6. Officer fetches the pending review list
-GET https://psacms-api.onrender.com/psacms/api/applications/status/SUBMITTED
+GET https://psacms.onrender.com/psacms/api/applications/status/SUBMITTED
 Accept: application/json
 Authorization: Bearer {{officer_token}}
 
 ### 7. Officer updates the application status
-PUT https://psacms-api.onrender.com/psacms/api/applications/1/status
+PUT https://psacms.onrender.com/psacms/api/applications/1/status
 Content-Type: application/json
 Authorization: Bearer {{officer_token}}
 
@@ -94,7 +94,7 @@ Authorization: Bearer {{officer_token}}
 }
 
 ### 8. Expected error: officer tries to update a non-existent application
-PUT https://psacms-api.onrender.com/psacms/api/applications/999/status
+PUT https://psacms.onrender.com/psacms/api/applications/999/status
 Content-Type: application/json
 Authorization: Bearer {{officer_token}}
 
