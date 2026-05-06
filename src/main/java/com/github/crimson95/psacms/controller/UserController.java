@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")  // Every endpoint in this controller starts with /api/users.
-@CrossOrigin(origins = "*")  //Unlock cross-domain restrictions
+@CrossOrigin(origins = "*")  // Unlock cross-domain restrictions
 public class UserController {
 
     // Dependency injection: Spring creates UserService and provides it here.
