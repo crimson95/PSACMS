@@ -1,0 +1,104 @@
+### 1. Register Citizen
+POST https://psacms-api.onrender.com/psacms/api/users/register
+Content-Type: application/json
+
+{
+  "username": "citizen_001@example.com",
+  "password": "secure_password",
+  "role": "CITIZEN"
+}
+
+### 2. Register Officer
+POST https://psacms-api.onrender.com/psacms/api/users/register
+Content-Type: application/json
+
+{
+  "username": "officer_001@example.com",
+  "password": "secure_password",
+  "role": "OFFICER"
+}
+
+### 3. Citizen login and save JWT
+POST https://psacms-api.onrender.com/psacms/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "citizen_001@example.com",
+  "password": "secure_password"
+}
+
+> {%
+    // Save the returned token into the citizen_token variable.
+    client.global.set("citizen_token", response.body);
+%}
+
+### 4. Citizen submits an application with a JWT
+POST https://psacms-api.onrender.com/psacms/api/applications/submit
+Content-Type: application/json
+Authorization: Bearer {{citizen_token}}
+
+{
+  "applicantId": 1,
+  "title": "2026 Canadian Youth Entrepreneurship Grant",
+  "description": "This is a comprehensive business plan submitted for the entrepreneurship funding program. It includes market analysis, financial projections, and the proposed impact on the local economy."
+}
+
+### Citizen submits an application with a JWT
+POST https://psacms-api.onrender.com/psacms/api/applications/submit
+Content-Type: application/json
+Authorization: Bearer {{citizen_token}}
+
+{
+  "applicantId": 1,
+  "title": "Test title 1",
+  "description": "Test description 1"
+}
+
+### Citizen submits an application with a JWT
+POST https://psacms-api.onrender.com/psacms/api/applications/submit
+Content-Type: application/json
+Authorization: Bearer {{citizen_token}}
+
+{
+  "applicantId": 1,
+  "title": "Test title 2",
+  "description": "Test description 2"
+}
+
+### 5. Officer login and save JWT
+POST https://psacms-api.onrender.com/psacms/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "officer_001@example.com",
+  "password": "secure_password"
+}
+
+> {%
+    client.global.set("officer_token", response.body);
+%}
+
+### 6. Officer fetches the pending review list
+GET https://psacms-api.onrender.com/psacms/api/applications/status/SUBMITTED
+Accept: application/json
+Authorization: Bearer {{officer_token}}
+
+### 7. Officer updates the application status
+PUT https://psacms-api.onrender.com/psacms/api/applications/1/status
+Content-Type: application/json
+Authorization: Bearer {{officer_token}}
+
+{
+  "newStatus": "UNDER_REVIEW",
+  "comments": "Documents verified. Proceeding to background check phase."
+}
+
+### 8. Expected error: officer tries to update a non-existent application
+PUT https://psacms-api.onrender.com/psacms/api/applications/999/status
+Content-Type: application/json
+Authorization: Bearer {{officer_token}}
+
+{
+  "newStatus": "UNDER_REVIEW",
+  "comments": "Testing global exception handler."
+}
