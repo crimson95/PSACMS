@@ -54,6 +54,9 @@ public class SecurityConfig {
             // Define which endpoints are public and which require specific authorities.
             // These rules are checked after JwtAuthenticationFilter has populated the SecurityContext.
             .authorizeHttpRequests(auth -> auth
+                // Keep the context root public so Render/GitHub Pages tests can verify the backend is awake.
+                .requestMatchers("", "/").permitAll()
+
                 // Login must be public because users need this endpoint to obtain a JWT.
                 .requestMatchers("/api/auth/login").permitAll()
 

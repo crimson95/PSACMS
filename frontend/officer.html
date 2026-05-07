@@ -104,7 +104,8 @@
 </div>
 
 <script>
-  const API_BASE = "https://psacms.onrender.com/psacms/api/applications";
+  // Keep the host separate so all officer application calls share the same deployed backend.
+  const API_BASE = 'https://psacms.onrender.com/psacms/api/applications';
   const token = localStorage.getItem("psacms_token");
 
   // Redirect unauthenticated users back to the login page.

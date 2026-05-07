@@ -48,12 +48,8 @@
 </div>
 
 <script>
-    function parseJwt(token) {
-        const payloadBase64Url = token.split('.')[1];
-        const payloadBase64 = payloadBase64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const paddedPayload = payloadBase64.padEnd(Math.ceil(payloadBase64.length / 4) * 4, '=');
-        return JSON.parse(atob(paddedPayload));
-    }
+    // Backend authentication endpoint used by the deployed static frontend.
+    const API_BASE = 'https://psacms.onrender.com/psacms/api/auth';
 
     // Listen for the login form submit event.
     document.getElementById("loginForm").addEventListener('submit', function(e) {
@@ -62,46 +58,64 @@
         const email = document.getElementById("emailInput").value;
         const password = document.getElementById("passwordInput").value;
         const errorAlert = document.getElementById("errorAlert");
-
-        errorAlert.classList.add("d-none");  // Hide any previous error message.
+        if (errorAlert) errorAlert.classList.add('d-none');  // Hide any previous error message.
 
         // Call the backend login API with Fetch.
-        fetch('https://psacms.onrender.com/psacms/api/auth/login', {
+        fetch(`${API_BASE}/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: email, password: password })
         })
         .then(async response => {
             if (response.ok) {
                 const token = await response.text();
+
                 // Store the JWT in localStorage so officer portal requests can send it later.
                 localStorage.setItem("psacms_token", token);
 
+                // Decode the JWT role claim to route users to the correct portal.
                 const decodePayload = parseJwt(token);
-
                 const userRole = decodePayload.role || decodePayload.authorities?.[0];
 
-                if(userRole === 'OFFICER'){
+                if (userRole === 'OFFICER') {
                     window.location.href = "officer.html";  // Officers go to the officer portal.
-                }else if(userRole === 'CITIZEN'){
+                } else if (userRole === 'CITIZEN') {
                     window.location.href = "citizen.html";  // Citizens go to the citizen portal.
-                }else{
+                } else {
                     localStorage.removeItem("psacms_token");
                     errorAlert.textContent = 'Login succeeded, but the user role in the token is missing or invalid.';
                     errorAlert.classList.remove("d-none");
                 }
-            }else{
-                errorAlert.textContent = 'Invalid credentials. Please try again.';
-                errorAlert.classList.remove("d-none");
+            } else {
+                // Show a clear error when the backend rejects the credentials.
+                if(errorAlert){
+                    errorAlert.textContent = 'Account or password is incorrect.';
+                    errorAlert.classList.remove('d-none');
+                }else{
+                    alert('Account or password is incorrect.');  // Fallback if the alert container is missing.
+                }
             }
         })
-            .catch(error => {
-                errorAlert.textContent = 'Server is unreachable. Is Spring Boot running?';
-                errorAlert.classList.remove("d-none");
+        .catch(error => {
+            // Network errors usually mean the Render backend is unavailable or still waking up.
+            if(errorAlert){
+                errorAlert.textContent = 'Server connection failed, please check if the Render is on';
+                errorAlert.classList.remove('d-none');
+            }else{
+                alert('Server connection failed, please check if the Render is on');
+            }
         });
     });
+
+    // Decode a browser-safe JWT payload so the frontend can read non-sensitive claims.
+    function parseJwt(token) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
 </script>
 </body>
 </html>

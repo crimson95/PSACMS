@@ -88,12 +88,13 @@
 </div>
 
 <script>
-    const API_BASE = "https://psacms.onrender.com/psacms/api/applications";
+    // Backend application endpoint used by the deployed static frontend.
+    const API_BASE = 'https://psacms.onrender.com/psacms/api/applications';
     const token = localStorage.getItem('psacms_token');
 
     // Security check: users without a token must return to the login page.
     if(!token){
-        window.location.href = "index.html"
+        window.location.href = "index.html";
     }
 
     function getStatusBadgeClass(status) {
@@ -123,6 +124,7 @@
 
     async function loadMyApplications() {
         try{
+            // The backend derives the citizen identity from the JWT, not from request parameters.
             const response = await fetch(`${API_BASE}/mine`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -148,12 +150,20 @@
     document.getElementById('applicationForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        if(!token){
+            alert('Login timeout, please log in again.');
+            window.location.href = 'index.html';
+            return;
+        }
+
         const title = document.getElementById('titleInput').value;
         const description = document.getElementById('descriptionInput').value;
         const submitBtn = e.target.querySelector('button');
 
-        submitBtn.disabled = true;
-        submitBtn.innerText = "Submitting...";
+        if(submitBtn){
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting...";
+        }
 
         try{
             const response = await fetch(`${API_BASE}/submit`, {
@@ -165,24 +175,24 @@
                 body: JSON.stringify({ title: title, description: description })
             });
 
-            if(response.ok){
+            if(response.ok) {
                 const data = await response.json();
                 alert(`Success! Your application #${data.id} has been submitted.`);
-
                 // Clear the form after the backend confirms the application was saved.
                 document.getElementById('applicationForm').reset();
                 loadMyApplications();
-
             }else{
                 const errorData = await response.json();
                 alert(`Error: ${errorData.message}`);
             }
         }catch(error){
             console.error("Error: ", error);
-            alert("Failed to connect to the server.")
-        }finally {
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Submit Application";
+            alert('Failed to connect to the server.');
+        }finally{
+            if(submitBtn){
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Application";
+            }
         }
     });
 

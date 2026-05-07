@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController  // Marks this class as a controller that returns HTTP responses directly.
 public class HomeController {
 
-    @GetMapping("/")  // Runs when the browser sends a GET request to "/".
+    @GetMapping({"", "/"})  // Accept both the context root with and without a trailing slash.
     public String home() {
         return "Welcome to PSACMS. The server and database are functional.";
     }
